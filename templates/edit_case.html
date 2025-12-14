@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Case{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2>Edit Case</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="title" class="form-label">Title</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ case.title }}" required>
+            </div>
+            <div class="mb-3">
+                <label for="argument" class="form-label">Argument</label>
+                <textarea class="form-control" id="argument" name="argument" rows="4" required>{{ case.argument }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="evidence" class="form-label">Evidence (Text)</label>
+                <textarea class="form-control" id="evidence" name="evidence" rows="3">{{ case.evidence }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="evidence_file" class="form-label">Evidence File</label>
+                <input type="file" class="form-control" id="evidence_file" name="evidence_file">
+                {% if case.evidence_file %}
+                    <p>Current file: <a href="{{ case.evidence_file.url }}" target="_blank">{{ case.evidence_file.name }}</a></p>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Update Case</button>
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

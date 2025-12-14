@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2>Dashboard</h2>
+
+{% if user.role == 'defendant' or user.role == 'plaintiff' %}
+    <h3>Submit a Case</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+            <label for="argument" class="form-label">Argument</label>
+            <textarea class="form-control" id="argument" name="argument" rows="4" required></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="evidence" class="form-label">Evidence (Text)</label>
+            <textarea class="form-control" id="evidence" name="evidence" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="evidence_file" class="form-label">Evidence File</label>
+            <input type="file" class="form-control" id="evidence_file" name="evidence_file">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Case</button>
+    </form>
+{% endif %}
+
+<h3>Cases</h3>
+{% if cases %}
+    <div class="mb-3">
+        <input type="text" id="filter" class="form-control" placeholder="Filter by defendant/plaintiff name">
+    </div>
+    <div id="cases-list">
+        {% for case in cases %}
+            <div class="card mb-3 case-item" data-submitter="{{ case.submitted_by.username }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ case.title }}</h5>
+                    <p class="card-text">{{ case.argument }}</p>
+                    {% if case.evidence %}
+                        <p class="card-text"><strong>Evidence:</strong> {{ case.evidence }}</p>
+                    {% endif %}
+                    {% if case.evidence_file %}
+                        <p class="card-text"><strong>Evidence File:</strong> <a href="{{ case.evidence_file.url }}" target="_blank">Download</a></p>
+                    {% endif %}
+                    <p class="card-text"><small class="text-muted">Submitted by: {{ case.submitted_by.username }} ({{ case.submitter_profile.role }}) | Status: {{ case.status }}</small></p>
+                    {% if profile.role == 'juror' and case.status == 'approved' %}
+                        {% if not case.has_voted %}
+                            <form method="post" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="case_id" value="{{ case.id }}">
+                                <button type="submit" name="verdict" value="guilty" class="btn btn-danger btn-sm">Guilty</button>
+                                <button type="submit" name="verdict" value="not_guilty" class="btn btn-success btn-sm">Not Guilty</button>
+                            </form>
+                        {% else %}
+                            <p>You have already voted on this case.</p>
+                        {% endif %}
+                    {% endif %}
+                    {% if profile.role == 'judge' %}
+                        <a href="{% url 'edit_case' case.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="case_id" value="{{ case.id }}">
+                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">Approve</button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">Reject</button>
+                            <button type="submit" name="action" value="delete" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No cases available.</p>
+{% endif %}
+
+<script>
+document.getElementById('filter').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const cases = document.querySelectorAll('.case-item');
+    cases.forEach(caseItem => {
+        const submitter = caseItem.getAttribute('data-submitter').toLowerCase();
+        if (submitter.includes(filter)) {
+            caseItem.style.display = '';
+        } else {
+            caseItem.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}
