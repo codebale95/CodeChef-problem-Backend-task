@@ -1,0 +1,5 @@
+
+- Command: `python -m venv venv`
+- Command: `venv\Scripts\activate && pip install django djangorestframework djangorestframework-simplejwt`
+- Command: `venv\Scripts\activate && python manage.py makemigrations`
+- Command: `venv\Scripts\activate && python manage.py runserver`
